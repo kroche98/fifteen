@@ -1,0 +1,71 @@
+.puzzleframe {
+	border: thick solid black;
+	display: block;
+	margin: auto
+}
+
+.square {
+	border: thin solid dimgray;
+    float: left;
+	box-sizing: border-box;
+	display: flex;
+	-webkit-user-select: none; /* Safari */        
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* IE10+/Edge */
+	user-select: none; /* Standard */
+}
+
+.square.blank {
+	background: #202020;
+}
+
+.square.tile {
+}
+
+.square.tile.red {
+	justify-content: center;
+	align-items: center;	
+	font-size: 20pt;
+	font-family: Verdana, sans-serif;
+	font-weight: bold;
+	background-color: crimson;
+	color: white;
+}
+
+.square.tile.white {
+	justify-content: center;
+	align-items: center;	
+	font-size: 20pt;
+	font-family: Verdana, sans-serif;
+	font-weight: bold;
+	background-color: white;
+	color: crimson;
+}	
+
+.square.tile.gray {
+	justify-content: center;
+	align-items: center;	
+	font-size: 20pt;
+	font-family: serif;
+	font-weight: bold;
+    background-image: linear-gradient(to bottom right, #999999, #CCCCCC);
+	color: #606060;
+    text-shadow: 0px 0px 10px white;
+    
+}
+
+.square.tile.image1 {
+    background: url("image1.jpg");
+}
+
+.square.tile.image2 {
+	background: url("drcoleman.jpg");
+    background-size: 500px 500px;
+	justify-content: end;
+	align-items: end;
+    font-family: serif;
+    color: deepskyblue;
+	font-weight: bold;
+    font-size: 12pt;
+    bottom: 12px;
+}
