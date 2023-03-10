@@ -1,0 +1,1 @@
+minify fifteen.js > fifteen.min.js
