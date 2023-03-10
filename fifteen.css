@@ -1,6 +1,7 @@
-.puzzleframe {
+#puzzle-frame {
 	border: thick solid black;
-	display: block;
+	display: flex;
+	flex-wrap: wrap;
 	margin: auto
 }
 

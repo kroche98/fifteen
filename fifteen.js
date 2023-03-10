@@ -15,55 +15,44 @@ function shuffle(arr) {
 
 
 /**
- * The board configuration is stored as a 1-dimensional array of numbers from 0 to n^2-1,
- * with the largest number (n^2-1) representing the blank square. At any point, the board is
- * represented as a permutation of the numbers from 0 to n^2-1.
+ * Represents the state of a 15 puzzle
  * 
- * For convenience, the value representing the blank square is stored in this._blank_val.
- *
- * The functions this._x and this._y convert from the index within the 1-D array to logical
- * x- and y-coordinates. The function this._i does the reverse.
- *
- * Also, for convenience, the current x- and y-coordinates of the blank square are stored
- * in this._blank_x and this._blank_y.
+ * The board configuration is stored as a zero-indexed 1-dimensional array of numbers from
+ * 0 to n^2-1, with the largest number (n^2-1) representing the blank square.
  */
 class Puzzle {
-	constructor(size) {
-		this.size = size;
-		this.board = new Array(size*size).fill(undefined).map((_, i) => i);
-		this.solvedBoard = this.board.slice();
-		this._blank_val = size*size - 1;
-		this._blank_x = size - 1;
-		this._blank_y = size - 1;
-	}
-	
+    constructor(size) {
+        this.size = size;
+        this.board = [...Array(size*size).keys()];
+        this.blank_val = size*size - 1;
+    }
+
     /** Convert from array index to logical x-coordinate */
-	_x(square) {
-        return square % this.size;
+	_x(i) {
+        return i % this.size;
     }
 
 	/** Convert from array index to logical x-coordinate */
-	_y(square) {
-        return Math.floor(square / this.size);
+	_y(i) {
+        return Math.floor(i / this.size);
     }
 
 	/** Convert from logical x- and y-coordinates to array index */
 	_i(x, y) {
         return this.size * y + x;
     }
-    
+
+    /** Get index of blank square */
+    _blank_i() {
+        return this.board.indexOf(this.blank_val);
+    }
+
     /** Randomly shuffle the board, ensuring that the resulting configuration is solvable */
 	randomize() {
 		do {
 			this.board = shuffle(this.board);
-            // remember to update the position of the blank square
-			let blank_pos = this.board.indexOf(this._blank_val);
-			this._blank_x = this._x(blank_pos);
-			this._blank_y = this._y(blank_pos);
 		} while (!this.solvable());
 	}
-	
-    // boolean to determine whether the current position is solvable
 	
     /**
      * Determine whether the current position is solvable
@@ -75,7 +64,7 @@ class Puzzle {
     solvable() {
 		return (
             (this.size%2===1) && (this.inversions()%2===0) )
-            || ( (this.size%2===0) && ( (this._blank_y%2===1) === (this.inversions()%2===0) )
+            || ( (this.size%2===0) && ( (this._y(this._blank_i())%2===1) === (this.inversions()%2===0) )
         )
 	}
 	
@@ -90,31 +79,60 @@ class Puzzle {
 	
     /**
      * Attempt to slide the tile with the given id
-     * @param {Number} id 
+     * @param {Number} i 
      * @returns {Boolean} whether the move succeeded
      */
-	slide(id) {
-        // we use the distance formula to determine whether the move is legal
-        // the move is legal if and only if the distance between the tile and the blank is 1
-		let square_x = this._x(id);
-		let square_y = this._y(id);
-		let legal = (Math.sqrt( (square_x - this._blank_x)**2 + (square_y - this._blank_y)**2 ) == 1);
-		if (legal) {
-            // swap the tile with the blank square
-			this.board[this._i(this._blank_x, this._blank_y)] = this.board[id];
-			this.board[id] = this._blank_val;
-            // remember to update the position of the blank square
-			this._blank_x = square_x;
-			this._blank_y = square_y;
-		}
-		return legal;
+	slide(i) {
+		let x = this._x(i);
+		let y = this._y(i);
+        let blank_i = this._blank_i();
+        let blank_x = this._x(blank_i)
+        let blank_y = this._y(blank_i)
+        if ( (x === blank_x) && (y === blank_y) ) {
+            return false; // can't slide the blank space
+        } else if (x === blank_x) { // vertical move
+            let j = blank_i; // starting index of blank space
+            if (blank_i > i) { // blank space needs to move up on the board, i.e. its index needs to decrease
+                while (j > i) {
+                    this._swap(j, j-this.size);
+                    j -= this.size;
+                }
+            } else if (blank_i < i) { // blank space needs to move down on the board, i.e. its index needs to increase
+                while (j < i) {
+                    this._swap(j, j+this.size);
+                    j += this.size;
+                }
+            }
+        } else if (y === blank_y) { // horizontal move
+            let j = blank_i; // starting index of blank space
+            if (blank_i > i) { // blank space needs to move left on the board, i.e. its index needs to decrease
+                while (j > i) {
+                    this._swap(j, j-1);
+                    j -= 1;
+                }
+            } else if (blank_i < i) { // blank space needs to move right on the board, i.e. its index needs to increase
+                while (j < i) {
+                    this._swap(j, j+1);
+                    j += 1;
+                }
+            }
+        } else {
+            return false; // illegal move
+        }
+
+        return true
 	}
 	
     /** Determine whether the current board configuration is in the solved state */
 	solved() {
-        // just compare elementwise with this.solvedBoard
-		return this.board.every( (tileVal, idx) => tileVal=== this.solvedBoard[idx] );
+        const solvedState = [...Array(this.size*this.size).keys()];
+		return this.board.every( (tileVal, idx) => tileVal === solvedState[idx] );
 	}
+
+    /** Swap the tiles at the given indexes */
+    _swap(i1, i2) {
+        [this.board[i1], this.board[i2]] = [this.board[i2], this.board[i1]];
+    }
 }
 
 
@@ -145,8 +163,7 @@ class PuzzleDisplay {
 		
         // create a frame div within the container div
 		const frameDiv = document.createElement('div');
-		frameDiv.id = "puzzleFrame";
-		frameDiv.className = "puzzleframe";
+		frameDiv.id = "puzzle-frame";
         frameDiv.style.width = this.tileWidth * puzzle.size + "px";
         frameDiv.style.height = this.tileWidth * puzzle.size + "px";
 		containerDiv.appendChild(frameDiv);
@@ -154,16 +171,18 @@ class PuzzleDisplay {
         // build the puzzle up within the frame div
 		this.squares = [];
 		for (let squareId of puzzle.board) {
+            let squareContainerDiv = document.createElement('div');
+            squareContainerDiv.style.order = squareId;
+            squareContainerDiv.style.height = 100/this.puzzle.size + "%";
+            squareContainerDiv.style.width = 100/this.puzzle.size + "%";
+            squareContainerDiv.onclick = () => this.move(squareContainerDiv);
 			let squareDiv = document.createElement('div');
-			squareDiv.id = `square${squareId}`;
-			squareDiv.setAttribute('data-id', squareId);
-			let puz = this;
-			squareDiv.onclick = function() { puz.move(this.dataset.id); };
-			this.squares[squareId] = squareDiv;
-			frameDiv.appendChild(squareDiv);
+			this.squares[squareId] = squareContainerDiv;
+            squareContainerDiv.append(squareDiv);
+			frameDiv.appendChild(squareContainerDiv);
 		}
         
-        // finally apply styles to the individual pieces
+        // finally, apply styles to the individual pieces
 		this.decorate();
 	}
 	
@@ -171,22 +190,21 @@ class PuzzleDisplay {
 	decorate() {
 		for (let i = 0; i < this.squares.length; i++) {
 			let pieceVal = this.puzzle.board[i];
-            let tileDiv = this.squares[i];
+            let tileDiv = this.squares[i].firstChild;
             
             // first clear any existing formatting
             tileDiv.className = '';
             tileDiv.style.cssText = '';
             tileDiv.textContent = '';
             
-			if (pieceVal===puzzle._blank_val) // the blank square gets its own style
+			if (i === this.puzzle.blank_val) // the blank square gets its own style
                 tileDiv.className = "square blank";
 			else // the other squares have a style determined by the styleSpecifier function                
-				this.styleSpecifier(pieceVal, tileDiv, this.tileWidth, this.puzzle);
+				this.styleSpecifier(i, tileDiv, this.tileWidth, this.puzzle);
             
-            // size the pieces appropriately
-            // we do this every time we decorate since clearing existing formatting will also clear this
-            tileDiv.style.height = 100/this.puzzle.size + "%";
-            tileDiv.style.width = 100/this.puzzle.size + "%";
+            // size the pieces to fill the container
+            tileDiv.style.height = "100%";
+            tileDiv.style.width = "100%";
 		}
 	}
     
@@ -197,15 +215,9 @@ class PuzzleDisplay {
     }
     
     /** Attempt to move the piece with the given id */
-    move(clickedSquareId) {
-        // get the original position of the blank square
-        // we do this *before* the if statement since this.puzzle.slide() will change its position
-        let blankSquareId = this.puzzle._i(puzzle._blank_x, puzzle._blank_y);
-
-        if (this.puzzle.slide(clickedSquareId)) { // try to move it within the Puzzle object
-            // if that succeeds, swap the clicked square with the blank square
-            this._swapSquares(blankSquareId, clickedSquareId);
-            
+    move(div) {
+        if (this.puzzle.slide(div.style.order)) { // try to slide it within the Puzzle object
+            this.updateDisplay()
             if (this.puzzle.solved()) {
                 // delay the popup so that the move is processed before the popup appears
                 setTimeout(() => alert("Congratulations! You solved the puzzle."), 10);
@@ -213,35 +225,18 @@ class PuzzleDisplay {
         }
     }
     
-    /** Swap the squares with the given ids */
-    _swapSquares(square1Id, square2Id) {
-        // retrieve the nodes themselves
-        let square1 = document.getElementById(`square${square1Id}`);
-        let square2 = document.getElementById(`square${square2Id}`);
-                
-        // swap them in this.squares
-        this.squares[square1Id] = square2;
-        this.squares[square2Id] = square1;
-        
-        // swap them in the DOM
-        let parent = square1.parentNode;
-        let placeholder1 = parent.insertBefore(document.createElement('div'), square1);
-        let placeholder2 = parent.insertBefore(document.createElement('div'), square2);
-        parent.replaceChild(square2, placeholder1);
-        parent.replaceChild(square1, placeholder2);
-        
-        // swap id and data-id back
-        let tempId = square1.dataset.id;
-        square1.id = `square${square2.dataset.id}`;
-        square1.dataset.id = square2.dataset.id;
-        square2.id = `square${tempId}`;
-        square2.dataset.id = tempId;
+    /** Update the display after tiles are moved */
+    updateDisplay() {
+        for (let i of this.puzzle.board.keys()) {
+            let val = this.puzzle.board[i];
+            this.squares[val].style.order = i;
+        }
     }
     
     /** Scramble the puzzle */
 	randomize() {
 		this.puzzle.randomize(); // shuffle the puzzle itself
-		this.decorate(); // update the display
+		this.updateDisplay(); // update the display
 	}
 }
 
