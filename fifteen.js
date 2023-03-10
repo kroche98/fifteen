@@ -206,8 +206,10 @@ class PuzzleDisplay {
             // if that succeeds, swap the clicked square with the blank square
             this._swapSquares(blankSquareId, clickedSquareId);
             
-            if (this.puzzle.solved())
-                alert("Congratulations! You solved the puzzle.");
+            if (this.puzzle.solved()) {
+                // delay the popup so that the move is processed before the popup appears
+                setTimeout(() => alert("Congratulations! You solved the puzzle."), 10);
+            }
         }
     }
     
