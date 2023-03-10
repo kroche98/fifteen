@@ -198,7 +198,7 @@ class PuzzleDisplay {
             tileDiv.textContent = '';
             
 			if (i === this.puzzle.blank_val) // the blank square gets its own style
-                tileDiv.className = "square blank";
+                tileDiv.className = "square blank-tile";
 			else // the other squares have a style determined by the styleSpecifier function                
 				this.styleSpecifier(i, tileDiv, this.tileWidth, this.puzzle);
             
@@ -258,31 +258,32 @@ Any modifications apart from these may have unintended consequences
 
 // red and white checkerboard style
 function redWhiteStyle(tileId, tileDiv, tileWidth, puzzle) {
-	if (puzzle.size%2===0) {
-		tileDiv.className = ((tileId + puzzle._y(tileId))%2 === 0) ? "square tile red" : "square tile white";
+	if (puzzle.size % 2 === 0) {
+		tileDiv.className = ((tileId + puzzle._y(tileId)) % 2 === 0) ? "square red-tile" : "square white-tile";
 	}
 	else
-		tileDiv.className = (tileId%2 === 0) ? "square tile red" : "square tile white";
+		tileDiv.className = (tileId % 2 === 0) ? "square red-tile" : "square white-tile";
 	tileDiv.textContent = tileId+1;
+}
+
+// wood style
+function woodStyle(tileId, tileDiv, tileWidth, puzzle) {
+    tileDiv.className = "square wood-tile";
+    tileDiv.style.backgroundSize = tileWidth*puzzle.size + "px " + tileWidth*puzzle.size + "px";
+    tileDiv.style.backgroundPositionX = puzzle._x(tileId)*-tileWidth + "px";
+	tileDiv.style.backgroundPositionY = puzzle._y(tileId)*-tileWidth + "px";
+    tileDiv.textContent = tileId+1;
 }
 
 // gray style
 function grayStyle(tileId, tileDiv, tileWidth, puzzle) {
-    tileDiv.className = "square tile gray";
+    tileDiv.className = "square gray-tile";
     tileDiv.textContent = tileId+1;
 }
 
-// abstract background style
-function image1Style(tileId, tileDiv, tileWidth, puzzle) {
-	tileDiv.className = "square tile image1";
-    tileDiv.style.backgroundSize = tileWidth*puzzle.size + "px " + tileWidth*puzzle.size + "px";
-    tileDiv.style.backgroundPositionX = puzzle._x(tileId)*-tileWidth + "px";
-	tileDiv.style.backgroundPositionY = puzzle._y(tileId)*-tileWidth + "px";
-}
-
 // picture of Dr. Coleman style
-function image2Style(tileId, tileDiv, tileWidth, puzzle) {
-	tileDiv.className = "square tile image2";
+function imageStyle(tileId, tileDiv, tileWidth, puzzle) {
+	tileDiv.className = "square image-tile";
     tileDiv.style.backgroundSize = tileWidth*puzzle.size + "px " + tileWidth*puzzle.size + "px";
     tileDiv.style.backgroundPositionX = puzzle._x(tileId)*-tileWidth + "px";
 	tileDiv.style.backgroundPositionY = puzzle._y(tileId)*-tileWidth + "px";
